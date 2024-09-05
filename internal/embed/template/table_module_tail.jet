@@ -1,0 +1,39 @@
+{{ if .Embed }}
+//go:embed module
+var EmbeddedFiles embed.FS
+{{ end }}
+
+// TableManager 相关代码
+var csvPath = "csv/"
+
+func SetPath(path string) {
+    csvPath = path
+}
+
+{{.BlockTablesDefine}}
+
+func Load() (err error) {
+{{.BlockTablesLoad}}
+    return
+}
+
+/*func Unload() {
+{{.BlockTablesUnload}}
+}*/
+
+func Reload() (err error) {
+{{.BlockTablesReload}}
+    return
+}
+
+func init() {
+{{.BlockTablesInit}}
+    workPath, err := os.Getwd()
+    if err != nil {
+        panic(err)
+    }
+    SetPath(filepath.Join(workPath, "./csv") + "/")
+}
+
+func main() {
+}

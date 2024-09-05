@@ -1,0 +1,35 @@
+BINARY_NAME = csvloader
+BUILD_DIR = bin
+SRC_DIR = cmd/csvloader
+TEST_DIR = test
+PKG_NAME = $(SRC_DIR)/csvloader
+GO_BUILD_FLAGS = -o $(BUILD_DIR)/$(BINARY_NAME)
+GO_TEST_FLAGS = -cover
+
+.PHONY: all
+all: build
+
+build:
+	@echo "Building $(BINARY_NAME)..."
+	@mkdir -p $(BUILD_DIR)
+	@go build $(GO_BUILD_FLAGS) $(PKG_NAME)
+
+test:
+	@echo "Running tests..."
+	@go test $(GO_TEST_FLAGS) $(PKG_NAME)
+
+clean:
+	@echo "Cleaning up..."
+	@rm -rf $(BUILD_DIR)
+
+clean-all: clean
+	@echo "Cleaning up all..."
+	@rm -rf $(BUILD_DIR) $(TEST_DIR)
+
+help:
+	@echo "Available targets:"
+	@echo "  all      - Build the application"
+	@echo "  build    - Build the application"
+	@echo "  test     - Run tests"
+	@echo "  clean    - Clean up build artifacts"
+	@echo "  clean-all- Clean up all artifacts including tests"

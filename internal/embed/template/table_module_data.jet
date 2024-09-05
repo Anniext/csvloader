@@ -1,0 +1,79 @@
+// 自定义类型解析
+{{.BlockUserDefinedType}}
+
+// {{.Class}} 结构定义
+type {{.Class}} struct {
+{{.BlockClassFieldLines}}
+}
+
+// {{.ClassManage}} 索引Key类型定义
+{{.BlockIndexKeyTypeDef}}
+
+// {{.ClassManage}} 索引类型定义
+{{.BlockIndexTypeDef}}
+
+// {{.ClassManage}} 结构定义
+type {{.ClassManage}} struct {
+{{.BlockIndexVar}}
+}
+
+func (m *{{.ClassManage}}) Init() {
+    m.data = nil
+{{.BlockInitMethod}}
+}
+
+func (m *{{.ClassManage}}) Unload() {
+    for k := range m.{{.PkVar}} {
+        m.{{.PkVar}}[k] = nil
+        delete(m.{{.PkVar}}, k)
+    }
+    m.Init()
+}
+
+func (m *{{.ClassManage}}) Load() (err error) {
+    {{ if .Embed }}
+    const csvFileName = "module/{{.CsvFileName}}"
+    csvFile, err := EmbeddedFiles.Open(csvFileName)
+    {{ else }}
+    const csvFileName = "{{.CsvFileName}}"
+    path := strings.Join([]string{csvPath, csvFileName}, "")
+    csvFile, err := os.OpenFile(path, os.O_RDONLY, os.ModePerm)
+    {{ end }}
+
+    if err != nil {
+        return err
+    }
+    defer csvFile.Close()
+
+    csvReader := csv.NewReader(transform.NewReader(csvFile, unicode.UTF8.NewDecoder()))
+    csvReader.LazyQuotes = true
+    csvReader.Read()
+    csvReader.Read()
+    csvReader.Read()
+    unMarshaller, err := gocsv.NewUnmarshaller(csvReader, &{{.Class}}{})
+    if err != nil {
+        return err
+    }
+    csvReader.Read()
+    for {
+        v, err := unMarshaller.Read()
+        if err != nil {
+            if err == io.EOF {
+                return nil
+            } else {
+                length := len(m.data)
+                if length > 0 {
+                    d, _ := json.Marshal(m.data[len(m.data)-1])
+                    return errors.New(err.Error() + "last line " + string(d))
+                } else {
+                    return errors.New(err.Error() + "last line nil")
+                }
+            }
+        }
+        cls := v.(*{{.Class}})
+        m.data = append(m.data, cls)
+        {{.BlockIndexInsert}}
+    }
+}
+
+{{.BlockGetMethod}}

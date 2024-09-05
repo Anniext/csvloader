@@ -1,0 +1,5 @@
+{{.BlockFormulaDefine}}
+{{.BlockFormulaDefine1}}
+func InitFormula(formulaManager *FormulaFormulaManager) {
+{{.BlockInitFormula}}
+}
